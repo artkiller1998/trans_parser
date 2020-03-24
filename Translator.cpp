@@ -277,11 +277,12 @@ void treesProto(subExp* root) {
             }
             else j += 1;
         }
+        if (firstSkob != ")" && numOfScob == 0) {
+            root->data.erase(root->data.begin());
+            root->data.pop_back();
+        }
     }
-    if (firstSkob != ")" && numOfScob == 0) {
-        root->data.erase(root->data.begin());
-        root->data.pop_back();
-    }
+    
     for (string str : root->data) {
         cout << str;
     }
