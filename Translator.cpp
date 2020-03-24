@@ -223,80 +223,157 @@ void FirstAge(vector<string>& leksika) {
     2. разбитие на подвыражения
 */
 
-//это класс для лексем
-class node {
+//класс для разбора выражений на подвыражения то бишь и для деревьев
+class subExp {
 public:
-    string data;
-    node* left;
-    node* right;
+    vector<string> data;
+    subExp* left;
+    subExp* right;
 
-    node() {
-        data = "";
+    subExp() {
+        data = {};
+        left = NULL, right = NULL;
+    }
+
+    subExp(vector<string> &data) {
+        this->data = data;
         left = NULL, right = NULL;
     }
 };
 
-//это класс который содержит подвыражение в виде дерева
-class BinaryTree {
-public:
-    node* root;
-    vector<node*> stack;
 
-    BinaryTree() {
-        this->root = new node();
-        this->stack = {};
-    }
+// функция строит дерево
+void treesProto(subExp* root) {
+    //создадим флажок нахождения в скобках
+    // точнее счетчик
+    //когда "(" он +1 а когда ")" то -1
 
-    //надо обозначить приоритеты операций и ключевых слов
-    /*map<string, int> priority = {
-        {"(", 4},
-        {")", 4},
-        {"+", 2},
-        {"-", 2},
-        {"*", 1},
-        {"/", 1}
-    };*/
+    int numOfScob = 0;
 
-    //это код со страницы https://aliev.me/runestone/Trees/ParseTree.html
-    void trees(vector<string>& exp) {
-        stack.push_back(root);
-        node* current_node = root;
+    if (root->data.size() == 1) return;
 
-        for (string tepmStr : exp) {
-            if (tepmStr == "(") {
-                node* newNode = new node();
-                current_node->left = newNode;
-                stack.push_back(current_node);
-                current_node = current_node->left;
+    //убираем лишние скобки в начале и в конце типа было (A + B) а стало A + B просто
+
+    //bool flag = false;
+    string firstSkob = "";
+    if (root->data[0] == "(" && root->data[root->data.size() - 1] == ")") {
+        //bool flag = true;
+        //сначала надо убедиться что после первой ( не стоит )
+        for (int i = 1; i < (root->data.size() - 1); i++) {
+            if (root->data[i] == "(" || root->data[i] == ")") {
+                firstSkob += root->data[i];
+                break;
             }
-            else if (   tepmStr != "+" &&
-                        tepmStr != "-" &&
-                        tepmStr != "*" &&
-                        tepmStr != "/" && 
-                        tepmStr != ")") {
-                current_node->data = tepmStr;
-                node* parent = stack[stack.size() - 1]; stack.pop_back();
-                current_node = parent;
-
+        }
+        //теперь проверим счетчик
+        for (int j = 1; j < (root->data.size() - 1); ) {
+            if (root->data[j] == "(") {
+                numOfScob += 1;
+                j += 1;
             }
-            else if (   tepmStr == "+" ||
-                        tepmStr == "-" ||
-                        tepmStr == "*" ||
-                        tepmStr == "/") {
-                current_node->data = tepmStr;
-                node* newNode = new node();
-                current_node->right = newNode;
-                stack.push_back(current_node);
-                current_node = current_node->right;
-
+            else if (root->data[j] == ")") {
+                numOfScob -= 1;
+                j += 1;
             }
-            else if (tepmStr == ")") {
-                current_node = stack[stack.size() - 1]; stack.pop_back();
-            }
-
+            else j += 1;
         }
     }
-};
+    if (firstSkob != ")" && numOfScob == 0) {
+        root->data.erase(root->data.begin());
+        root->data.pop_back();
+    }
+    for (string str : root->data) {
+        cout << str;
+    }
+    cout << endl;
+
+    //строим вниз через рекурсию
+    for (int i = 0; i < root->data.size(); ) {
+
+        if (root->data[i] == "(") {
+            numOfScob += 1;
+            i += 1;
+        }
+        else if (root->data[i] == ")") {
+            numOfScob -= 1;
+            i += 1;
+        }
+        else if (numOfScob == 0) {
+            if (root->data[i] == "+" || root->data[i] == "-") {
+
+                vector<string> newVec1 = {};
+                vector<string> newVec2 = {};
+
+                vector<string> thisLeaf = { root->data[i] };
+
+
+                newVec1.insert(newVec1.end(), &root->data[0], &root->data[i]);
+                root->data.push_back("qwe"); //это чтобы можно обратиться к &root->data[root->data.size() - 1]
+                newVec2.insert(newVec2.end(), &root->data[i + 1], &root->data[root->data.size() - 1]);
+                root->data.pop_back();
+
+                subExp* newSubExp1 = new subExp(newVec1);
+                subExp* newSubExp2 = new subExp(newVec2);
+
+                root->data = thisLeaf;
+                root->left = newSubExp1;
+                root->right = newSubExp2;
+
+                treesProto(root->left);
+                treesProto(root->right);
+
+                return;
+            }
+            i += 1;
+
+        }
+        else i += 1;
+    }
+
+    for (int i = 0; i < root->data.size(); ) {
+
+        if (root->data[i] == "(") {
+            numOfScob += 1;
+            i += 1;
+        }
+        else if (root->data[i] == ")") {
+            numOfScob -= 1;
+            i += 1;
+        }
+        else if (numOfScob == 0) {
+            if (root->data[i] == "*" || root->data[i] == "/") {
+
+                vector<string> newVec1 = {};
+                vector<string> newVec2 = {};
+
+                vector<string> thisLeaf = { root->data[i] };
+
+
+                newVec1.insert(newVec1.end(), &root->data[0], &root->data[i]);
+                root->data.push_back("qwe"); //это чтобы можно обратиться к &root->data[root->data.size() - 1]
+                newVec2.insert(newVec2.end(), &root->data[i + 1], &root->data[root->data.size() - 1]);
+                root->data.pop_back();
+
+                subExp* newSubExp1 = new subExp(newVec1);
+                subExp* newSubExp2 = new subExp(newVec2);
+
+                root->data = thisLeaf;
+                root->left = newSubExp1;
+                root->right = newSubExp2;
+
+                treesProto(root->left);
+                treesProto(root->right);
+
+                return;
+
+            }
+            i += 1;
+
+        }
+        else i += 1;
+
+    }
+}
 
 
 //есть много видов инструкций:
@@ -402,12 +479,14 @@ class blockInstr {
 
 #pragma endregion
 
-void print_Tree(node* p, int level){
+void print_Tree(subExp* p, int level){
     if (p)
     {
         print_Tree(p->left, level + 1);
         for (int i = 0; i < level; i++) cout << "   ";
-        cout << p->data << endl;
+        for (string str : p->data) {
+            cout << str << endl;
+        }
         print_Tree(p->right, level + 1);
     }
 }
@@ -435,7 +514,7 @@ int main() {
         i++;
     }*/
 
-    vector<BinaryTree *> trees = {};
+    /*vector<BinaryTree *> trees = {};
     for (vector<string> exp : Expressions) {
         BinaryTree* newTree = new BinaryTree();
         newTree->trees(exp);
@@ -445,8 +524,12 @@ int main() {
 
     for (BinaryTree* temp : trees) {
         print_Tree(temp->root, 0);
-    }
+    }*/
 
+    subExp* help = new subExp(Expressions[0]);
+    treesProto(help);
+
+    print_Tree(help, 0);
 
     return 0;
 
