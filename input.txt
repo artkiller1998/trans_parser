@@ -1,0 +1,11 @@
+var A, B, C, D;
+A = 5;
+C = 6;
+if(C * 6 + A > 40)  // true
+   B = 1;
+else
+   B = 0;
+print B + 4;
+D = A + C * B;
+print D;
+return D * 3;
